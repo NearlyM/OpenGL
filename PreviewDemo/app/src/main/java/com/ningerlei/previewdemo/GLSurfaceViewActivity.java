@@ -2,8 +2,12 @@ package com.ningerlei.previewdemo;
 
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 
+import com.ningerlei.render.BallGLRender;
+import com.ningerlei.render.FlatVideoGLRender;
+import com.ningerlei.render.PicGLRender;
 import com.ningerlei.render.RectGLRender;
 import com.ningerlei.render.TriangleGLRender;
 
@@ -21,6 +25,7 @@ import com.ningerlei.render.TriangleGLRender;
 public class GLSurfaceViewActivity extends PreviewActivity {
 
     GLSurfaceView glSurfaceView;
+//    FlatVideoGLRender flatVideoGLRender;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,8 +42,32 @@ public class GLSurfaceViewActivity extends PreviewActivity {
     private void initGLSurfaceView() {
         glSurfaceView.setEGLContextClientVersion(2);
 //        glSurfaceView.setRenderer(new TriangleGLRender(this));
-        glSurfaceView.setRenderer(new RectGLRender(this));
+//        glSurfaceView.setRenderer(new RectGLRender(this));
+//        glSurfaceView.setRenderer(new PicGLRender(this));
+//        flatVideoGLRender = new FlatVideoGLRender(this, Environment.getExternalStorageDirectory().getPath() + "/DanaleCamera/test.mp4");
+//        glSurfaceView.setRenderer(flatVideoGLRender);
+
+        glSurfaceView.setRenderer(new BallGLRender(this));
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        glSurfaceView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        glSurfaceView.onPause();
+//        flatVideoGLRender.getMediaPlayer().pause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        flatVideoGLRender.getMediaPlayer().release();
     }
 }

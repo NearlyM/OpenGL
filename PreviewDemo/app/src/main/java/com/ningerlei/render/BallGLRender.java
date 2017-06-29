@@ -6,6 +6,8 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 import com.ningerlei.previewdemo.R;
+import com.ningerlei.shape.Sphere;
+import com.ningerlei.shape.SphereNoTexture;
 import com.ningerlei.util.ShaderUtil;
 
 import java.nio.ByteBuffer;
@@ -17,37 +19,37 @@ import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Description :
- * CreateTime : 2017/6/28 18:29
+ * CreateTime : 2017/6/29 18:19
  *
  * @author ningerlei@danale.com
  * @version <v1.0>
  * @Editor : Administrator
- * @ModifyTime : 2017/6/28 18:29
+ * @ModifyTime : 2017/6/29 18:19
  * @ModifyDescription :
  */
 
-public class TriangleGLRender implements  GLSurfaceView.Renderer{
+public class BallGLRender implements GLSurfaceView.Renderer{
 
     private Context context;
     private int aPositionHandle;
     private int programId;
-    private FloatBuffer vertexBuffer;
-    private final float[] vertexData = {
-            0f,0f,0f,
-            1f,-1f,0f,
-            1f,1f,0f
-    };
 
-    private final float[] projectionMatrix = new float[16];
     private int uMatrixHandle;
 
-    public TriangleGLRender(Context context){
+    private Sphere sphere;
+
+    private float[] modelMatrix = new float[16];
+    private float[] projectionMatrix=new float[16];
+    private float[] viewMatrix = new float[16];
+    private float[] modelViewMatrix = new float[16];
+    private float[] mMVPMatrix = new float[16];
+    private int screenWidth;
+    private int screenHeight;
+
+    public BallGLRender(Context context){
         this.context = context;
-        vertexBuffer = ByteBuffer.allocateDirect(vertexData.length * 4)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(vertexData);
-        vertexBuffer.position(0);
+        sphere = new Sphere(18f, 100, 200);
+
     }
 
     @Override
@@ -61,13 +63,14 @@ public class TriangleGLRender implements  GLSurfaceView.Renderer{
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        float ratio = width > height ? (float) width / height : (float) height / width;
-        if (width > height){
-            //正交矩阵变换，修改坐标比例
-            Matrix.orthoM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, -1f, 1f);
-        }else {
-            Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -ratio, ratio, -1f, 1f);
-        }
+        screenWidth=width; screenHeight=height;
+        float ratio=(float)width/height;
+        Matrix.perspectiveM(projectionMatrix, 0, 90, ratio, 1f, 500f);
+
+        Matrix.setLookAtM(viewMatrix, 0,
+                0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f,-1.0f,
+                0.0f, 1.0f, 0.0f);
     }
 
     @Override
@@ -76,7 +79,10 @@ public class TriangleGLRender implements  GLSurfaceView.Renderer{
         GLES20.glUseProgram(programId);
         GLES20.glUniformMatrix4fv(uMatrixHandle, 1, false, projectionMatrix, 0);
         GLES20.glEnableVertexAttribArray(aPositionHandle);
-        GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false, 12, vertexBuffer);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
+
+        Matrix.setIdentityM(modelMatrix,0);
+        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
+        GLES20.glUniformMatrix4fv(uMatrixHandle,1,false,mMVPMatrix,0);
     }
 }

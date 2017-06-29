@@ -69,8 +69,8 @@ public class RectGLRender implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        String vertex_shader = ShaderUtil.readRawText(context, R.raw.vertex_shader);
-        String fragment_shader = ShaderUtil.readRawText(context, R.raw.fragment_shader);
+        String vertex_shader = ShaderUtil.readRawText(context, R.raw.triangle_vertex_shader);
+        String fragment_shader = ShaderUtil.readRawText(context, R.raw.triangle_fragment_shader);
         programId = ShaderUtil.createProgram(vertex_shader, fragment_shader);
         aPositionHandle = GLES20.glGetAttribLocation(programId, "aPosition");
         uMatrixHandle = GLES20.glGetUniformLocation(programId, "uMatrix");
