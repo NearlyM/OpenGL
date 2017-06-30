@@ -2,14 +2,9 @@ package com.ningerlei.previewdemo;
 
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 
 import com.ningerlei.render.BallGLRender;
-import com.ningerlei.render.FlatVideoGLRender;
-import com.ningerlei.render.PicGLRender;
-import com.ningerlei.render.RectGLRender;
-import com.ningerlei.render.TriangleGLRender;
 
 /**
  * Description :
@@ -48,6 +43,7 @@ public class GLSurfaceViewActivity extends PreviewActivity {
 //        glSurfaceView.setRenderer(flatVideoGLRender);
 
         glSurfaceView.setRenderer(new BallGLRender(this));
+
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
     }

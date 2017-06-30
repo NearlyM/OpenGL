@@ -14,7 +14,6 @@ import android.view.Surface;
 import com.ningerlei.previewdemo.R;
 import com.ningerlei.shape.Plain;
 import com.ningerlei.shape.Shape;
-import com.ningerlei.shape.SphereNoTexture;
 import com.ningerlei.util.ShaderUtil;
 
 import java.io.IOException;
@@ -85,7 +84,7 @@ public class FlatVideoGLRender implements GLSurfaceView.Renderer, SurfaceTexture
         }
 
         plain = new Plain();
-//        plain = new SphereNoTexture(50f, 100, 200);
+//        plain = new SphereNoTextureOld(50f, 100, 200);
 
 //        vertexBuffer = ByteBuffer.allocateDirect(vertexData.length * 4)
 //                .order(ByteOrder.nativeOrder())
@@ -182,10 +181,10 @@ public class FlatVideoGLRender implements GLSurfaceView.Renderer, SurfaceTexture
 //        GLES20.glEnableVertexAttribArray(aPositionHandle);
 //        GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT,false, 12, vertexBuffer);
 
-        ((Plain) plain).uploadVertexBuffer(aPositionHandle);
-        ((Plain) plain).uploadTexCoordinateBuffer(aTextureCoordHandle);
+        plain.uploadVerticesBuffer(aPositionHandle);
+        plain.uploadTexCoordinateBuffer(aTextureCoordHandle);
 
-//        ((SphereNoTexture) plain).uploadVerticesBuffer(aPositionHandle);
+//        ((SphereNoTextureOld) plain).uploadVerticesBuffer(aPositionHandle);
 
 //        textureVertexBuffer.position(0);
 //        GLES20.glEnableVertexAttribArray(aTextureCoordHandle);
@@ -198,7 +197,7 @@ public class FlatVideoGLRender implements GLSurfaceView.Renderer, SurfaceTexture
         GLES20.glViewport(0, 0, screenWidth, screenHeight);
 
 //        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-        ((Plain) plain).draw();
+        plain.draw();
     }
 
     @Override

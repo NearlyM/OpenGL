@@ -20,8 +20,7 @@ import static com.ningerlei.util.ShaderUtil.checkGlError;
  * @ModifyTime : 2017/6/29 18:28
  * @ModifyDescription :
  */
-public class Sphere {
-
+public class Sphere implements Shape {
 
     private static final int sPositionDataSize = 3;
     private static final int sTextureCoordinateDataSize = 2;
@@ -30,7 +29,6 @@ public class Sphere {
     private FloatBuffer mTexCoordinateBuffer;
     private ShortBuffer indexBuffer;
     private int mNumIndices;
-
 
     /**
      * modified from hzqiujiadi on 16/1/8.
@@ -116,7 +114,7 @@ public class Sphere {
         mNumIndices=indices.length;
     }
 
-
+    @Override
     public void uploadVerticesBuffer(int positionHandle){
         FloatBuffer vertexBuffer = getVerticesBuffer();
         if (vertexBuffer == null) return;
@@ -128,6 +126,7 @@ public class Sphere {
         checkGlError("glEnableVertexAttribArray maPositionHandle");
     }
 
+    @Override
     public void uploadTexCoordinateBuffer(int textureCoordinateHandle){
         FloatBuffer textureBuffer = getTexCoordinateBuffer();
         if (textureBuffer == null) return;
@@ -139,16 +138,17 @@ public class Sphere {
         checkGlError("glEnableVertexAttribArray maTextureHandle");
     }
 
+    @Override
+    public void draw() {
+        indexBuffer.position(0);
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumIndices, GLES20.GL_UNSIGNED_SHORT, indexBuffer);
+    }
+
     public FloatBuffer getVerticesBuffer() {
         return mVerticesBuffer;
     }
 
     public FloatBuffer getTexCoordinateBuffer() {
         return mTexCoordinateBuffer;
-    }
-
-    public void draw() {
-        indexBuffer.position(0);
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumIndices, GLES20.GL_UNSIGNED_SHORT, indexBuffer);
     }
 }

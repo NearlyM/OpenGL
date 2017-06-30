@@ -13,4 +13,6 @@ package com.ningerlei.shape;
 
 public interface Shape {
     void draw();
+    void uploadVerticesBuffer(int positionHandle);
+    void uploadTexCoordinateBuffer(int textureCoordinateHandle);
 }

@@ -51,7 +51,8 @@ public class Plain implements Shape{
         textureVertexBuffer.position(0);
     }
 
-    public void uploadVertexBuffer(int positionHandle){
+    @Override
+    public void uploadVerticesBuffer(int positionHandle){
         if (vertexBuffer == null) return;
         vertexBuffer.position(0);
 
@@ -61,6 +62,7 @@ public class Plain implements Shape{
         ShaderUtil.checkGlError("glEnableVertexAttribArray maPositionHandle");
     }
 
+    @Override
     public void uploadTexCoordinateBuffer(int coordinateHandle){
         if (textureVertexBuffer == null) return;
         textureVertexBuffer.position(0);
@@ -71,16 +73,16 @@ public class Plain implements Shape{
         ShaderUtil.checkGlError("glEnableVertexAttribArray maTextureHandle");
     }
 
+    @Override
+    public void draw() {
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    }
+
     public FloatBuffer getVertexBuffer() {
         return vertexBuffer;
     }
 
     public FloatBuffer getTextureVertexBuffer() {
         return textureVertexBuffer;
-    }
-
-    @Override
-    public void draw() {
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     }
 }

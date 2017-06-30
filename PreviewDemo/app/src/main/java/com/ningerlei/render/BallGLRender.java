@@ -1,11 +1,13 @@
 package com.ningerlei.render;
 
 import android.content.Context;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 import com.ningerlei.previewdemo.R;
+import com.ningerlei.shape.Shape;
 import com.ningerlei.shape.Sphere;
 import com.ningerlei.shape.SphereNoTexture;
 import com.ningerlei.util.ShaderUtil;
@@ -13,76 +15,82 @@ import com.ningerlei.util.ShaderUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Description :
- * CreateTime : 2017/6/29 18:19
+ * CreateTime : 2017/6/30 10:43
  *
  * @author ningerlei@danale.com
  * @version <v1.0>
  * @Editor : Administrator
- * @ModifyTime : 2017/6/29 18:19
+ * @ModifyTime : 2017/6/30 10:43
  * @ModifyDescription :
  */
 
-public class BallGLRender implements GLSurfaceView.Renderer{
+public class BallGLRender implements GLSurfaceView.Renderer {
+
+    //多边形定点
+       /* float[] verticals = new float[]{
+                -1, -1, 0.0f, // top
+                -1f, 1, 0.0f, // bottom left
+                1f, 1, 0.0f,  // bottom right
+               // 1,-0.5f,0.0f,
+        };*/
+    float[] projectMatrix = new float[16];
+    private int mProgram;
+    private int mPositionHandle;
+    private int mColorHandle;
+    private int mMatricHandle;
 
     private Context context;
-    private int aPositionHandle;
-    private int programId;
 
-    private int uMatrixHandle;
+    private Shape shape;
 
-    private Sphere sphere;
+    public BallGLRender(Context context) {
 
-    private float[] modelMatrix = new float[16];
-    private float[] projectionMatrix=new float[16];
-    private float[] viewMatrix = new float[16];
-    private float[] modelViewMatrix = new float[16];
-    private float[] mMVPMatrix = new float[16];
-    private int screenWidth;
-    private int screenHeight;
-
-    public BallGLRender(Context context){
         this.context = context;
-        sphere = new Sphere(18f, 100, 200);
-
+        shape = new SphereNoTexture();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        String vertex_shader = ShaderUtil.readRawText(context, R.raw.triangle_vertex_shader);
-        String fragment_shader = ShaderUtil.readRawText(context, R.raw.triangle_fragment_shader);
-        programId = ShaderUtil.createProgram(vertex_shader, fragment_shader);
-        aPositionHandle = GLES20.glGetAttribLocation(programId, "aPosition");
-        uMatrixHandle = GLES20.glGetUniformLocation(programId, "uMatrix");
+        String vertexShader = ShaderUtil.readRawText(context, R.raw.ball_vertex_shader);
+        String fragmentShader = ShaderUtil.readRawText(context, R.raw.ball_fragment_shader);
+
+        mProgram = ShaderUtil.createProgram(vertexShader, fragmentShader);
+
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+        mColorHandle = GLES20.glGetUniformLocation(mProgram, "u_Color");
+        mMatricHandle = GLES20.glGetUniformLocation(mProgram, "u_Matrix");
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        screenWidth=width; screenHeight=height;
-        float ratio=(float)width/height;
-        Matrix.perspectiveM(projectionMatrix, 0, 90, ratio, 1f, 500f);
-
-        Matrix.setLookAtM(viewMatrix, 0,
-                0.0f, 0.0f, 0.0f,
-                0.0f, 0.0f,-1.0f,
-                0.0f, 1.0f, 0.0f);
+        float aspectRatio = width > height ? width * 1f / height : height * 1f / width;
+        if (width > height) {
+            Matrix.orthoM(projectMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f);
+        } else {
+            Matrix.orthoM(projectMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
+        }
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-        GLES20.glUseProgram(programId);
-        GLES20.glUniformMatrix4fv(uMatrixHandle, 1, false, projectionMatrix, 0);
-        GLES20.glEnableVertexAttribArray(aPositionHandle);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glUseProgram(mProgram);
+//        GLES20.glEnableVertexAttribArray(mPositionHandle);
+//        GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false,
+//                12, verticalsBuffer);
+        shape.uploadVerticesBuffer(mPositionHandle);
+        GLES20.glUniform4fv(mColorHandle, 1, new float[]{0, 1, 1, 5}, 0);
+        GLES20.glUniformMatrix4fv(mMatricHandle, 1, false, projectMatrix, 0);
+        shape.draw();
+        //GLES20.glDrawElements(GLES20.GL_TRIANGLES, verticalsIndex.length, GLES20.GL_UNSIGNED_SHORT, verticalsIndexBuffer);
+        GLES20.glDisableVertexAttribArray(mPositionHandle);
 
-        Matrix.setIdentityM(modelMatrix,0);
-        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-        GLES20.glUniformMatrix4fv(uMatrixHandle,1,false,mMVPMatrix,0);
     }
 }

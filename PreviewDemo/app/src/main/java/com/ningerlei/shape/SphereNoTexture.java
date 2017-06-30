@@ -2,114 +2,102 @@ package com.ningerlei.shape;
 
 import android.opengl.GLES20;
 
-import com.ningerlei.util.ShaderUtil;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
+import static com.ningerlei.util.ShaderUtil.checkGlError;
+
 /**
  * Description :
- * CreateTime : 2017/6/29 17:55
+ * CreateTime : 2017/6/30 16:33
  *
  * @author ningerlei@danale.com
  * @version <v1.0>
  * @Editor : Administrator
- * @ModifyTime : 2017/6/29 17:55
+ * @ModifyTime : 2017/6/30 16:33
  * @ModifyDescription :
  */
 
 public class SphereNoTexture implements Shape{
 
-    private static final int sPositionDataSize = 3;
+    FloatBuffer verticalsBuffer;
+    float[] verticals = new float[20 * 40 * 6 * 3];
+    ShortBuffer verticalsIndexBuffer;
+    //每个三角形的定点编号，多边形有两个三角形组成
+    short[] verticalsIndex = new short[]{
+            0, 1, 2,
+            0, 2, 3
+    };
 
-    private FloatBuffer mVertexBuffer;
-    private ShortBuffer indexBuffer;
+    public SphereNoTexture(){
+        float x = 0;
+        float y = 0;
+        float z = -1;
+        float r = 1;
+        int index=0;
+        double d = 9 * Math.PI / 180;
+        for (int i = 0; i < 180; i += 9) {
+            double d1 = i * Math.PI / 180;
+            for (int j = 0; j < 360; j += 9) {
+                double d2 = j * Math.PI / 180;
+                verticals[index++] = (float) (x+r*Math.sin(d1+d)*Math.cos(d2+d));
+                verticals[index++] = (float) (y+r*Math.cos(d1+d));
+                verticals[index++] = (float) (z+r*Math.sin(d1+d)*Math.sin(d2+d));
 
-    private int mNumIndices;
+                verticals[index++] = (float) (x+r*Math.sin(d1)*Math.cos(d2));
+                verticals[index++] = (float) (y+r*Math.cos(d1));
+                verticals[index++] = (float) (z+r*Math.sin(d1)*Math.sin(d2));
 
-    public SphereNoTexture(float radius, int rings, int sectors){
-        final float PI = (float) Math.PI;
-        final float PI_2 = (float) (Math.PI / 2);
+                verticals[index++] = (float) (x+r*Math.sin(d1)*Math.cos(d2+d));
+                verticals[index++] = (float) (y+r*Math.cos(d1));
+                verticals[index++] = (float) (z+r*Math.sin(d1)*Math.sin(d2+d));
 
-        float R = 1f / (float) rings;
-        float S = 1f / (float) sectors;
+                verticals[index++] = (float) (x+r*Math.sin(d1+d)*Math.cos(d2+d));
+                verticals[index++] = (float) (y+r*Math.cos(d1+d));
+                verticals[index++] = (float) (z+r*Math.sin(d1+d)*Math.sin(d2+d));
 
-        short r, s;
-        float x, y, z;
+                verticals[index++] = (float) (x+r*Math.sin(d1+d)*Math.cos(d2));
+                verticals[index++] = (float) (y+r*Math.cos(d1+d));
+                verticals[index++] = (float) (z+r*Math.sin(d1+d)*Math.sin(d2));
 
-        int numPoint = (rings + 1) * (sectors + 1);
-        float[] vertexs = new float[numPoint * 3];
-        short[] indices = new short[numPoint * 6];
+                verticals[index++] = (float) (x+r*Math.sin(d1)*Math.cos(d2));
+                verticals[index++] = (float) (y+r*Math.cos(d1));
+                verticals[index++] = (float) (z+r*Math.sin(d1)*Math.sin(d2));
 
-        int t = 0, v = 0;
-        for (r = 0; r < rings + 1; r++){
-            for (s = 0; s < sectors + 1; s++){
-                x = (float) (Math.cos(2*PI * s * S) * Math.sin( PI * r * R ));
-                y = (float) Math.sin( -PI_2 + PI * r * R );
-                z = (float) (Math.sin(2*PI * s * S) * Math.sin( PI * r * R ));
-
-                vertexs[v++] = x * radius;
-                vertexs[v++] = y * radius;
-                vertexs[v++] = z * radius;
             }
         }
 
-        //球体绘制坐标索引，用于  glDrawElements
-        int counter = 0;
-        int sectorsPlusOne = sectors + 1;
-        for(r = 0; r < rings; r++){
-            for(s = 0; s < sectors; s++) {
-                indices[counter++] = (short) (r * sectorsPlusOne + s);       //(a)
-                indices[counter++] = (short) ((r+1) * sectorsPlusOne + (s));    //(b)
-                indices[counter++] = (short) ((r) * sectorsPlusOne + (s+1));  // (c)
-                indices[counter++] = (short) ((r) * sectorsPlusOne + (s+1));  // (c)
-                indices[counter++] = (short) ((r+1) * sectorsPlusOne + (s));    //(b)
-                indices[counter++] = (short) ((r+1) * sectorsPlusOne + (s+1));  // (d)
-            }
-        }
+        verticalsBuffer = ByteBuffer.allocateDirect(verticals.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(verticals);
+        verticalsBuffer.position(0);
 
-        // initialize vertex byte buffer for shape coordinates
-        ByteBuffer bb = ByteBuffer.allocateDirect(
-                // (# of coordinate values * 4 bytes per float)
-                vertexs.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-        FloatBuffer vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(vertexs);
-        vertexBuffer.position(0);
-
-        // initialize byte buffer for the draw list
         ByteBuffer dlb = ByteBuffer.allocateDirect(
-                // (# of coordinate values * 2 bytes per short)
-                indices.length * 2);
+                // (对应顺序的坐标数 * 2)short是2字节
+                verticalsIndex.length * 2);
         dlb.order(ByteOrder.nativeOrder());
-        indexBuffer = dlb.asShortBuffer();
-        indexBuffer.put(indices);
-        indexBuffer.position(0);
-
-        mVertexBuffer=vertexBuffer;
-        mNumIndices=indices.length;
-    }
-
-    public void uploadVerticesBuffer(int positionHandle){
-        FloatBuffer vertexBuffer = getmVertexBuffer();
-        if (vertexBuffer == null) return;
-        vertexBuffer.position(0);
-
-        GLES20.glVertexAttribPointer(positionHandle, sPositionDataSize, GLES20.GL_FLOAT, false, 0, vertexBuffer);
-        ShaderUtil.checkGlError("glVertexAttribPointer maPosition");
-        GLES20.glEnableVertexAttribArray(positionHandle);
-        ShaderUtil.checkGlError("glEnableVertexAttribArray maPositionHandle");
-    }
-
-    public FloatBuffer getmVertexBuffer() {
-        return mVertexBuffer;
+        verticalsIndexBuffer = dlb.asShortBuffer();
+        verticalsIndexBuffer.put(verticalsIndex);
+        verticalsIndexBuffer.position(0);
     }
 
     @Override
     public void draw() {
-        indexBuffer.position(0);
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumIndices, GLES20.GL_UNSIGNED_SHORT, indexBuffer);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0,20 * 40 * 6 );
+    }
+
+    @Override
+    public void uploadVerticesBuffer(int positionHandle) {
+        GLES20.glEnableVertexAttribArray(positionHandle);
+        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false,
+                12, verticalsBuffer);
+    }
+
+    @Override
+    public void uploadTexCoordinateBuffer(int textureCoordinateHandle) {
+
     }
 }
