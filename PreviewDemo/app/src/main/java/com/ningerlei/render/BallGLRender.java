@@ -40,7 +40,7 @@ public class BallGLRender implements GLSurfaceView.Renderer {
                 1f, 1, 0.0f,  // bottom right
                // 1,-0.5f,0.0f,
         };*/
-    float[] projectMatrix = new float[16];
+    private float[] projectMatrix = new float[16];
     private int mProgram;
     private int mPositionHandle;
     private int mColorHandle;

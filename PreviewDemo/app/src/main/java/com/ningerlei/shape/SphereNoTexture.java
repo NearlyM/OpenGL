@@ -7,8 +7,6 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import static com.ningerlei.util.ShaderUtil.checkGlError;
-
 /**
  * Description :
  * CreateTime : 2017/6/30 16:33
@@ -75,18 +73,18 @@ public class SphereNoTexture implements Shape{
                 .put(verticals);
         verticalsBuffer.position(0);
 
-        ByteBuffer dlb = ByteBuffer.allocateDirect(
+        verticalsIndexBuffer = ByteBuffer.allocateDirect(
                 // (对应顺序的坐标数 * 2)short是2字节
-                verticalsIndex.length * 2);
-        dlb.order(ByteOrder.nativeOrder());
-        verticalsIndexBuffer = dlb.asShortBuffer();
-        verticalsIndexBuffer.put(verticalsIndex);
+                verticalsIndex.length * 2)
+                .order(ByteOrder.nativeOrder())
+                .asShortBuffer()
+                .put(verticalsIndex);
         verticalsIndexBuffer.position(0);
     }
 
     @Override
     public void draw() {
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0,20 * 40 * 6 );
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 20 * 40 * 6 );
     }
 
     @Override
